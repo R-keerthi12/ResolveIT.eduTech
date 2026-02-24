@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — ResolveIt</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <nav class="topbar">
+    <a href="../index.html" class="topbar-logo">Resolve<em>It</em></a>
+    <div class="topbar-right">
+      <span class="role-badge badge-admin">👨‍💼 Admin</span>
+      <button class="btn btn-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page-body animate">
+    <p class="page-title">Admin Control Panel</p>
+    <p class="page-sub">Monitor the entire grievance system at a glance</p>
+
+    <div class="stats-row" id="stats-row"></div>
+
+    <div class="nav-grid">
+      <a href="all-complaints.html" class="nav-card">
+        <div class="nav-card-icon ic-blue">📋</div>
+        <h3>All Complaints</h3>
+        <p>View, filter and manage all grievances</p>
+      </a>
+      <a href="#" class="nav-card" onclick="generateReport(event)">
+        <div class="nav-card-icon ic-green">📊</div>
+        <h3>Generate Report</h3>
+        <p>Export a summary of current complaints</p>
+      </a>
+      <a href="manage-users.html" class="nav-card">
+        <div class="nav-card-icon ic-amber">👥</div>
+        <h3>Manage Users</h3>
+        <p>Add staff, view registered students</p>
+      </a>
+    </div>
+  </div>
+
+  <script src="../assets/js/data.js"></script>
+  <script>
+    const session = getSession();
+    if (!session || session.role !== 'admin') window.location.href = 'admin-login.html';
+
+    function renderStats() {
+      const g = getGrievances();
+      const u = getUsers();
+      const f = getFeedbacks();
+      const avgRating = f.length ? (f.reduce((a, b) => a + b.rating, 0) / f.length).toFixed(1) : 'N/A';
+      document.getElementById('stats-row').innerHTML = `
+        <div class="stat-box"><div class="stat-num">${g.length}</div><div class="stat-label">Total Grievances</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:var(--amber)">${g.filter(x=>x.status==='Pending').length}</div><div class="stat-label">Pending</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:var(--blue)">${g.filter(x=>x.status==='In Progress').length}</div><div class="stat-label">In Progress</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:var(--green)">${g.filter(x=>x.status==='Resolved').length}</div><div class="stat-label">Resolved</div></div>
+        <div class="stat-box"><div class="stat-num">${u.length}</div><div class="stat-label">Total Users</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:var(--amber)">${avgRating}${f.length?'★':''}</div><div class="stat-label">Avg Rating</div></div>
+      `;
+    }
+
+    function generateReport(e) {
+      e.preventDefault();
+      const g = getGrievances();
+      const bycat = {};
+      g.forEach(x => { bycat[x.category] = (bycat[x.category]||0)+1; });
+      const catStr = Object.entries(bycat).map(([k,v])=>k+': '+v).join(' | ');
+      toast(`📊 Report — Total: ${g.length} | Resolved: ${g.filter(x=>x.status==='Resolved').length} | Pending: ${g.filter(x=>x.status==='Pending').length} | ${catStr}`);
+    }
+
+    function doLogout() { clearSession(); window.location.href = '../index.html'; }
+    renderStats();
+  </script>
+</body>
+</html>

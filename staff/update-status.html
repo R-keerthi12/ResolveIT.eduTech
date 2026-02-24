@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Update Status — ResolveIt</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <nav class="topbar">
+    <a href="../index.html" class="topbar-logo">Resolve<em>It</em></a>
+    <div class="topbar-right">
+      <span class="role-badge badge-staff">👨‍🏫 Staff</span>
+      <a href="staff-dashboard.html" class="btn btn-logout">← Dashboard</a>
+    </div>
+  </nav>
+
+  <div class="page-body animate">
+    <div class="card" style="max-width:580px">
+      <h1 class="page-title" style="margin-bottom:4px">Update Grievance Status</h1>
+      <p style="color:var(--muted);font-size:0.87rem;margin-bottom:26px">Enter the Grievance ID and select the new status to update the record.</p>
+
+      <div class="field">
+        <label>Grievance ID *</label>
+        <input type="text" id="grv-id" placeholder="e.g. GRV1001" oninput="lookupID()">
+      </div>
+
+      <!-- Preview card (hidden until found) -->
+      <div id="preview" style="display:none;background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:0.87rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div>
+            <strong id="pv-subject"></strong>
+            <span style="color:var(--muted);margin-left:8px" id="pv-cat"></span>
+          </div>
+          <span id="pv-status"></span>
+        </div>
+        <div style="color:var(--muted);margin-top:6px;font-size:0.8rem" id="pv-student"></div>
+      </div>
+
+      <div class="field">
+        <label>New Status *</label>
+        <select id="grv-status">
+          <option value="Pending">Pending</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Resolved">Resolved</option>
+          <option value="Forwarded">Forwarded to Admin</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Remarks (Optional)</label>
+        <textarea id="grv-remark" rows="3" placeholder="Add a note about the status change..."></textarea>
+      </div>
+
+      <button class="btn btn-amber btn-full" onclick="doUpdate()">Update Status →</button>
+    </div>
+  </div>
+
+  <script src="../assets/js/data.js"></script>
+  <script>
+    const session = getSession();
+    if (!session || session.role !== 'staff') window.location.href = 'staff-login.html';
+
+    function lookupID() {
+      const id = document.getElementById('grv-id').value.trim().toUpperCase();
+      const g  = getGrievances().find(x => x.id === id);
+      const el = document.getElementById('preview');
+      if (g) {
+        document.getElementById('pv-subject').textContent = g.subject;
+        document.getElementById('pv-cat').textContent     = '· ' + g.category;
+        document.getElementById('pv-status').innerHTML    = statusBadge(g.status);
+        document.getElementById('pv-student').textContent = 'Filed by ' + g.student + ' on ' + g.date;
+        el.style.display = 'block';
+      } else {
+        el.style.display = 'none';
+      }
+    }
+
+    function doUpdate() {
+      const id = document.getElementById('grv-id').value.trim().toUpperCase();
+      const ns = document.getElementById('grv-status').value;
+      const list = getGrievances();
+      const g = list.find(x => x.id === id);
+      if (!g) { toast('Grievance ID not found', true); return; }
+      g.status = ns;
+      saveGrievances(list);
+      toast('✅ ' + id + ' → ' + ns);
+      document.getElementById('grv-id').value = '';
+      document.getElementById('grv-remark').value = '';
+      document.getElementById('preview').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

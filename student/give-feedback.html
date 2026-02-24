@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Give Feedback — ResolveIt</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <nav class="topbar">
+    <a href="../index.html" class="topbar-logo">Resolve<em>It</em></a>
+    <div class="topbar-right">
+      <span class="role-badge badge-student">🎓 Student</span>
+      <a href="student-dashboard.html" class="btn btn-logout">← Dashboard</a>
+    </div>
+  </nav>
+
+  <div class="page-body animate">
+    <div class="card" style="max-width:600px">
+      <h1 class="page-title" style="margin-bottom:4px">Give Feedback</h1>
+      <p style="color:var(--muted);font-size:0.87rem;margin-bottom:26px">Help us improve by sharing your experience with the grievance resolution system.</p>
+
+      <div class="field">
+        <label>Overall Experience</label>
+        <div class="stars" id="stars">
+          <span class="star" onclick="rate(1)">★</span>
+          <span class="star" onclick="rate(2)">★</span>
+          <span class="star" onclick="rate(3)">★</span>
+          <span class="star" onclick="rate(4)">★</span>
+          <span class="star" onclick="rate(5)">★</span>
+        </div>
+        <p id="rating-label" style="font-size:0.82rem;color:var(--muted);min-height:1.2em"></p>
+      </div>
+
+      <div class="field">
+        <label>Related Grievance ID (Optional)</label>
+        <input type="text" id="fb-gid" placeholder="e.g. GRV1001">
+      </div>
+
+      <div class="field">
+        <label>Your Comments</label>
+        <textarea id="fb-comment" rows="5" placeholder="Share your thoughts on how the complaint was handled..."></textarea>
+      </div>
+
+      <button class="btn btn-primary btn-full" onclick="doSubmit()">Submit Feedback →</button>
+    </div>
+  </div>
+
+  <script src="../assets/js/data.js"></script>
+  <script>
+    const session = getSession();
+    if (!session || session.role !== 'student') window.location.href = 'student-login.html';
+
+    let rating = 0;
+    const labels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+
+    function rate(n) {
+      rating = n;
+      document.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('on', i < n));
+      document.getElementById('rating-label').textContent = labels[n] + (n === 5 ? ' 🎉' : '');
+    }
+
+    function doSubmit() {
+      if (!rating) { toast('Please select a star rating', true); return; }
+      const comment = document.getElementById('fb-comment').value.trim();
+      const gid     = document.getElementById('fb-gid').value.trim();
+
+      const feedbacks = getFeedbacks();
+      feedbacks.push({ rating, comment, gid, student: session.name, date: today() });
+      saveFeedbacks(feedbacks);
+
+      toast('🙏 Thank you for your feedback!');
+      setTimeout(() => { window.location.href = 'student-dashboard.html'; }, 900);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ResolveIt — Grievance Management System</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    body {
+      background: var(--ink);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%,   rgba(26,63,207,0.32) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 85% 85%, rgba(232,147,10,0.11) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .home-wrap {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 40px 20px;
+      max-width: 540px;
+      margin: auto;
+      width: 100%;
+    }
+
+    .home-icon {
+      width: 76px; height: 76px;
+      background: var(--blue);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      margin: 0 auto 28px;
+      box-shadow: 0 0 48px rgba(26,63,207,0.5);
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-9px); }
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.8rem, 9vw, 4.2rem);
+      font-weight: 800;
+      letter-spacing: -2.5px;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    h1 em { color: var(--amber); font-style: normal; }
+
+    .tagline {
+      color: rgba(255,255,255,0.5);
+      font-size: 1rem;
+      font-weight: 300;
+      margin-bottom: 52px;
+    }
+
+    .roles { display: flex; flex-direction: column; gap: 12px; }
+
+    .role-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 15px;
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      text-decoration: none;
+      color: white;
+      text-align: left;
+      transition: all 0.25s;
+    }
+    .role-card:hover {
+      background: rgba(255,255,255,0.11);
+      border-color: rgba(255,255,255,0.22);
+      transform: translateX(5px);
+    }
+    .role-icon {
+      width: 46px; height: 46px;
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+    .ri-student { background: rgba(26,63,207,0.3); }
+    .ri-staff   { background: rgba(232,147,10,0.22); }
+    .ri-admin   { background: rgba(20,120,74,0.28); }
+
+    .role-text h3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.98rem;
+    }
+    .role-text p { font-size: 0.8rem; color: rgba(255,255,255,0.45); margin-top: 2px; }
+    .role-arrow  { margin-left: auto; color: rgba(255,255,255,0.3); font-size: 1.1rem; }
+
+    .footer-note {
+      margin-top: 40px;
+      font-size: 0.76rem;
+      color: rgba(255,255,255,0.25);
+    }
+  </style>
+</head>
+<body>
+  <div class="home-wrap animate">
+    <div class="home-icon">📋</div>
+    <h1>Resolve<em>It</em></h1>
+    <p class="tagline">Student Grievance Management System</p>
+
+    <div class="roles">
+      <a href="student/student-login.html" class="role-card">
+        <div class="role-icon ri-student">🎓</div>
+        <div class="role-text">
+          <h3>Student</h3>
+          <p>Submit and track your grievances</p>
+        </div>
+        <span class="role-arrow">→</span>
+      </a>
+      <a href="staff/staff-login.html" class="role-card">
+        <div class="role-icon ri-staff">👨‍🏫</div>
+        <div class="role-text">
+          <h3>Staff</h3>
+          <p>Manage and resolve assigned complaints</p>
+        </div>
+        <span class="role-arrow">→</span>
+      </a>
+      <a href="admin/admin-login.html" class="role-card">
+        <div class="role-icon ri-admin">👨‍💼</div>
+        <div class="role-text">
+          <h3>Admin</h3>
+          <p>Monitor the system and manage users</p>
+        </div>
+        <span class="role-arrow">→</span>
+      </a>
+    </div>
+
+    <p class="footer-note">ResolveIt v1.0 &nbsp;·&nbsp; Frontend Only &nbsp;·&nbsp; HTML · CSS · JS</p>
+  </div>
+
+  <script src="assets/js/data.js"></script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Login — ResolveIt</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .login-page::before {
+      background:
+        radial-gradient(ellipse 70% 60% at 50% -10%, rgba(232,147,10,0.28) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 10% 90%, rgba(26,63,207,0.1) 0%, transparent 60%);
+    }
+  </style>
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-box animate">
+      <a href="../index.html" class="login-logo">Resolve<em>It</em></a>
+      <span class="login-tag" style="background:var(--amber-dim);color:#a86200">👨‍🏫 Staff Portal</span>
+      <h1>Staff Sign In</h1>
+      <div class="demo-hint">💡 Demo mode — enter any email &amp; password to continue</div>
+      <div class="field">
+        <label>Staff Email</label>
+        <input type="text" id="email" placeholder="staff@college.edu" autofocus>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="pass" placeholder="••••••••">
+      </div>
+      <button class="btn btn-amber btn-full" onclick="doLogin()">Sign In →</button>
+      <p style="text-align:center;margin-top:18px;font-size:0.85rem;color:var(--muted)">
+        Not staff? <a href="../index.html" style="color:var(--amber);font-weight:500">Go back</a>
+      </p>
+    </div>
+  </div>
+  <script src="../assets/js/data.js"></script>
+  <script>
+    function doLogin() {
+      const email = document.getElementById('email').value.trim();
+      const pass  = document.getElementById('pass').value.trim();
+      if (!email || !pass) { toast('Please fill in all fields', true); return; }
+      const name = capitalise(email.split('@')[0].replace(/[._]/g, ' '));
+      setSession({ name, email, role: 'staff' });
+      toast('Welcome, ' + name + '!');
+      setTimeout(() => { window.location.href = 'staff-dashboard.html'; }, 600);
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  </script>
+</body>
+</html>
