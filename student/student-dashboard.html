@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard — ResolveIt</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <nav class="topbar">
+    <a href="../index.html" class="topbar-logo">Resolve<em>It</em></a>
+    <div class="topbar-right">
+      <span class="role-badge badge-student">🎓 Student</span>
+      <button class="btn btn-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page-body animate">
+    <p class="page-title">Hello, <em id="user-name">Student</em> 👋</p>
+    <p class="page-sub">What would you like to do today?</p>
+
+    <!-- Stats -->
+    <div class="stats-row" id="stats-row"></div>
+
+    <!-- Nav Cards -->
+    <div class="nav-grid">
+      <a href="submit-grievance.html" class="nav-card">
+        <div class="nav-card-icon ic-blue">✍️</div>
+        <h3>Submit Grievance</h3>
+        <p>File a complaint to any department</p>
+      </a>
+      <a href="track-status.html" class="nav-card">
+        <div class="nav-card-icon ic-amber">🔍</div>
+        <h3>Track Status</h3>
+        <p>Check progress of your complaints</p>
+      </a>
+      <a href="give-feedback.html" class="nav-card">
+        <div class="nav-card-icon ic-green">💬</div>
+        <h3>Give Feedback</h3>
+        <p>Rate your experience with us</p>
+      </a>
+    </div>
+
+    <!-- Departments -->
+    <div class="section-head">
+      <h2>Departments</h2>
+      <a href="submit-grievance.html" class="btn btn-ghost" style="font-size:0.85rem;padding:7px 14px">Submit to a Dept →</a>
+    </div>
+    <div class="dept-summary-grid" id="dept-grid"></div>
+
+    <!-- Recent grievances -->
+    <div class="section-head">
+      <h2>My Recent Grievances</h2>
+      <a href="track-status.html" class="btn btn-ghost" style="font-size:0.85rem;padding:7px 14px">View All</a>
+    </div>
+    <div class="table-wrap" id="recent-table"></div>
+  </div>
+
+  <script src="../assets/js/data.js"></script>
+  <script>
+    const session = getSession();
+    if (!session || session.role !== 'student') window.location.href = 'student-login.html';
+
+    document.getElementById('user-name').textContent = session.name;
+
+    function renderStats(grievances) {
+      document.getElementById('stats-row').innerHTML = `
+        <div class="stat-box"><div class="stat-num">${grievances.length}</div><div class="stat-label">Total Filed</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:var(--amber)">${grievances.filter(g=>g.status==='Pending').length}</div><div class="stat-label">Pending</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:var(--blue)">${grievances.filter(g=>g.status==='In Progress').length}</div><div class="stat-label">In Progress</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:var(--green)">${grievances.filter(g=>g.status==='Resolved').length}</div><div class="stat-label">Resolved</div></div>
+      `;
+    }
+
+    function renderDepts(grievances) {
+      const el = document.getElementById('dept-grid');
+      el.innerHTML = getDepartments().map(d => {
+        const count = grievances.filter(g => g.dept === d.id).length;
+        return `<div class="dept-summary-card" onclick="location.href='track-status.html'">
+          <span class="dept-summary-icon">${d.icon}</span>
+          <div>
+            <div class="dept-summary-name">${d.name}</div>
+            <div class="dept-summary-count">${count} grievance${count !== 1 ? 's' : ''}</div>
+          </div>
+          <div class="dept-summary-num">${count}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderRecent(grievances) {
+      const src = grievances.slice(-5).reverse();
+      const el  = document.getElementById('recent-table');
+      if (!src.length) {
+        el.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>No grievances yet. <a href="submit-grievance.html" style="color:var(--blue)">Submit your first one!</a></p></div>`;
+        return;
+      }
+      el.innerHTML = `<table>
+        <thead><tr>
+          <th>Grievance ID</th><th>Subject</th><th>Department</th><th>Date</th><th>Status</th>
+        </tr></thead>
+        <tbody>
+          ${src.map(g => `<tr>
+            <td><strong>${g.id}</strong></td>
+            <td>${g.subject}</td>
+            <td>${deptTag(g.dept)}</td>
+            <td>${g.date}</td>
+            <td>${statusBadge(g.status)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+    }
+
+    function doLogout() { apiLogout(); window.location.href = '../index.html'; }
+
+    // Load data from API
+    async function loadDashboard() {
+      const res = await apiFetch('/grievances?limit=500');
+      const grievances = res.ok ? (Array.isArray(res.data) ? res.data : (res.data.data || [])) : [];
+      renderStats(grievances);
+      renderDepts(grievances);
+      renderRecent(grievances);
+    }
+    loadDashboard();
+  </script>
+</body>
+</html>

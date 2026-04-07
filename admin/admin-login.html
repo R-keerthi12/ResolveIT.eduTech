@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login — ResolveIt</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .login-page::before {
+      background:
+        radial-gradient(ellipse 70% 60% at 50% -10%, rgba(20,120,74,0.28) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 10% 90%, rgba(26,63,207,0.1) 0%, transparent 60%);
+    }
+  </style>
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-box animate">
+      <a href="../index.html" class="login-logo">Resolve<em>It</em></a>
+      <span class="login-tag" style="background:var(--green-dim);color:var(--green)">👨‍💼 Admin Portal</span>
+      <h1>Admin Sign In</h1>
+
+      <div class="field">
+        <label>Admin Email</label>
+        <input type="text" id="email" placeholder="admin@college.edu" autofocus>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="pass" placeholder="••••••••">
+      </div>
+      <button class="btn btn-green btn-full" onclick="doLogin()">Sign In →</button>
+      <p style="text-align:center;margin-top:18px;font-size:0.85rem;color:var(--muted)">
+        Not admin? <a href="../index.html" style="color:var(--green);font-weight:500">Go back</a>
+      </p>
+    </div>
+  </div>
+  <script src="../assets/js/data.js"></script>
+  <script>
+    async function doLogin() {
+      const email = document.getElementById('email').value.trim();
+      const pass  = document.getElementById('pass').value.trim();
+      if (!email || !pass) { toast('Please fill in all fields', true); return; }
+      const btn = document.querySelector('[onclick="doLogin()"]');
+      btn.disabled = true; btn.textContent = 'Signing in…';
+      const res = await apiLogin(email, pass);
+      if (res.ok) {
+        if (res.data.user.role !== 'admin') {
+          toast('Access denied — not a admin account', true);
+          apiLogout(); btn.disabled = false; btn.textContent = 'Sign In →'; return;
+        }
+        toast('Welcome, ' + res.data.user.name + '!');
+        setTimeout(() => { window.location.href = 'admin-dashboard.html'; }, 600);
+      } else {
+        toast(res.error || 'Login failed', true);
+        btn.disabled = false; btn.textContent = 'Sign In →';
+      }
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  </script>
+</body>
+</html>

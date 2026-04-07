@@ -1,0 +1,46 @@
+[
+  {
+    "id": "GRV9342",
+    "subject": "no network",
+    "dept": "TECH",
+    "deptName": "IT / Technical Department",
+    "category": "IT / Technical Department",
+    "desc": "no network",
+    "status": "Pending",
+    "priority": "High",
+    "date": "2026-03-18",
+    "student": "keerthana",
+    "studentEmail": "rayapureddykeerthana@gmail.com",
+    "remarks": "",
+    "history": [
+      {
+        "status": "Pending",
+        "by": "rayapureddykeerthana@gmail.com",
+        "at": "2026-03-18T13:02:23.382Z",
+        "note": "Grievance submitted."
+      }
+    ]
+  },
+  {
+    "id": "GRV9652",
+    "subject": "no networkmhgfh",
+    "dept": "TECH",
+    "deptName": "IT / Technical Department",
+    "category": "IT / Technical Department",
+    "desc": "no network\nvcx",
+    "status": "Pending",
+    "priority": "High",
+    "date": "2026-03-18",
+    "student": "keerthana",
+    "studentEmail": "rayapureddykeerthana@gmail.com",
+    "remarks": "",
+    "history": [
+      {
+        "status": "Pending",
+        "by": "rayapureddykeerthana@gmail.com",
+        "at": "2026-03-18T13:25:30.020Z",
+        "note": "Grievance submitted."
+      }
+    ]
+  }
+]

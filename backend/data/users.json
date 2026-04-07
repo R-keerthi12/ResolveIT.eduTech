@@ -1,0 +1,32 @@
+[
+  {
+    "id": "U_ADMIN",
+    "name": "Admin User",
+    "email": "admin@college.edu",
+    "password": "admin123",
+    "role": "admin",
+    "dept": "",
+    "deptName": "",
+    "createdAt": "2025-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "U_RESOLVER",
+    "name": "Academic Resolver",
+    "email": "resolver@college.edu",
+    "password": "resolver123",
+    "role": "resolver",
+    "dept": "ACAD",
+    "deptName": "Academic Department",
+    "createdAt": "2025-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "U1773838915717",
+    "name": "keerthana",
+    "email": "rayapureddykeerthana@gmail.com",
+    "password": "Keerthana@12",
+    "role": "student",
+    "dept": "",
+    "deptName": "",
+    "createdAt": "2026-03-18T13:01:55.717Z"
+  }
+]

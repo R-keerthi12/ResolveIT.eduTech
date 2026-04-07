@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ResolveIt API — Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:        #0c0d10;
+    --surface:   #13151a;
+    --surface2:  #1c1f28;
+    --border:    #252833;
+    --border2:   #2e3340;
+    --text:      #e8eaf0;
+    --muted:     #6b7280;
+    --accent:    #f59e0b;
+    --accent2:   #3b82f6;
+    --green:     #10b981;
+    --red:       #ef4444;
+    --purple:    #8b5cf6;
+    --cyan:      #06b6d4;
+
+    --get:    #10b981;
+    --post:   #3b82f6;
+    --patch:  #f59e0b;
+    --delete: #ef4444;
+
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    font-size: 15px;
+  }
+
+  /* ── Layout ── */
+  .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 0 0 40px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border2) transparent;
+  }
+
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 24px 22px 20px;
+    border-bottom: 1px solid var(--border);
+    text-decoration: none;
+  }
+  .brand-icon {
+    width: 34px; height: 34px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: grid; place-items: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .brand-text { font-family: var(--font-head); font-weight: 800; font-size: 1rem; color: var(--text); }
+  .brand-sub  { font-size: 0.7rem; color: var(--muted); font-weight: 400; }
+
+  .nav-section { padding: 20px 16px 6px; }
+  .nav-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 6px;
+    margin-bottom: 6px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 7px;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 0.875rem;
+    transition: all .15s;
+    cursor: pointer;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(245,158,11,0.12); color: var(--accent); }
+  .nav-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── Main ── */
+  .main { min-height: 100vh; }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 72px 60px 60px;
+    background: linear-gradient(135deg, rgba(245,158,11,0.05) 0%, transparent 60%),
+                linear-gradient(225deg, rgba(59,130,246,0.04) 0%, transparent 50%);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 80% at 80% 50%, rgba(245,158,11,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(245,158,11,0.12);
+    border: 1px solid rgba(245,158,11,0.25);
+    color: var(--accent);
+    padding: 5px 14px;
+    border-radius: 100px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    margin-bottom: 20px;
+    font-family: var(--font-mono);
+  }
+  .hero h1 {
+    font-family: var(--font-head);
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  .hero h1 em { color: var(--accent); font-style: normal; }
+  .hero-desc { color: var(--muted); max-width: 540px; font-size: 1rem; line-height: 1.7; margin-bottom: 32px; }
+
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .meta-chip {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-family: var(--font-mono);
+  }
+  .meta-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+
+  /* ── Content sections ── */
+  .content { padding: 0 60px 80px; }
+
+  .section { padding-top: 60px; }
+  .section-anchor { position: relative; top: -80px; display: block; visibility: hidden; }
+
+  .section-title {
+    font-family: var(--font-head);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+  .section-sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 28px; }
+  .section-divider { width: 100%; height: 1px; background: var(--border); margin: 40px 0 0; }
+
+  /* ── Info cards (base URL, auth) ── */
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin-bottom: 16px;
+  }
+  .info-card h4 {
+    font-family: var(--font-head);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── Code block ── */
+  .code-block {
+    background: #0a0b0e;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 22px;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    position: relative;
+  }
+  .code-block .comment { color: #4b5563; }
+  .code-block .key     { color: #7dd3fc; }
+  .code-block .str     { color: #86efac; }
+  .code-block .num     { color: #fdba74; }
+  .code-block .kw      { color: #c4b5fd; }
+  .code-block .method  { color: var(--accent); }
+
+  .code-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+
+  /* ── Endpoint cards ── */
+  .endpoint-group { margin-bottom: 36px; }
+  .group-title {
+    font-family: var(--font-head);
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .group-icon {
+    width: 30px; height: 30px;
+    background: var(--surface2);
+    border-radius: 7px;
+    display: grid; place-items: center;
+    font-size: 15px;
+  }
+
+  .endpoint {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .endpoint:hover { border-color: var(--border2); }
+  .endpoint.open  { border-color: var(--border2); }
+
+  .endpoint-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .method-badge {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 5px;
+    min-width: 62px;
+    text-align: center;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+  .m-get    { background: rgba(16,185,129,.15); color: var(--get);    border: 1px solid rgba(16,185,129,.3); }
+  .m-post   { background: rgba(59,130,246,.15); color: var(--post);   border: 1px solid rgba(59,130,246,.3); }
+  .m-patch  { background: rgba(245,158,11,.15); color: var(--patch);  border: 1px solid rgba(245,158,11,.3); }
+  .m-delete { background: rgba(239,68,68,.15);  color: var(--delete); border: 1px solid rgba(239,68,68,.3); }
+
+  .endpoint-path {
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    color: var(--text);
+    flex: 1;
+  }
+  .endpoint-path .param { color: var(--accent); }
+
+  .endpoint-summary { color: var(--muted); font-size: 0.82rem; }
+
+  .endpoint-roles {
+    display: flex;
+    gap: 5px;
+    margin-left: auto;
+  }
+  .role-pill {
+    font-size: 0.68rem;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+  .r-admin    { background: rgba(139,92,246,.15); color: var(--purple); border: 1px solid rgba(139,92,246,.3); }
+  .r-resolver { background: rgba(245,158,11,.12); color: var(--accent); border: 1px solid rgba(245,158,11,.25); }
+  .r-student  { background: rgba(59,130,246,.12); color: var(--accent2); border: 1px solid rgba(59,130,246,.25); }
+  .r-any      { background: rgba(107,114,128,.12); color: var(--muted); border: 1px solid rgba(107,114,128,.25); }
+
+  .chevron { margin-left: 8px; color: var(--muted); font-size: 0.75rem; transition: transform .2s; flex-shrink: 0; }
+  .endpoint.open .chevron { transform: rotate(180deg); }
+
+  .endpoint-body {
+    display: none;
+    padding: 0 20px 20px;
+    border-top: 1px solid var(--border);
+    animation: fadeIn .15s ease;
+  }
+  .endpoint.open .endpoint-body { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+  .body-section { margin-top: 16px; }
+  .body-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .param-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .param-table th {
+    text-align: left;
+    padding: 7px 12px;
+    background: var(--surface2);
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .param-table th:first-child { border-radius: 6px 0 0 6px; }
+  .param-table th:last-child  { border-radius: 0 6px 6px 0; }
+  .param-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .param-table tr:last-child td { border-bottom: none; }
+  .pname { font-family: var(--font-mono); color: var(--cyan); font-size: 0.82rem; }
+  .ptype { font-family: var(--font-mono); color: var(--muted); font-size: 0.78rem; }
+  .preq  { color: var(--red); font-size: 0.72rem; font-weight: 700; }
+  .popt  { color: var(--muted); font-size: 0.72rem; }
+
+  /* ── Credentials table ── */
+  .cred-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 16px; }
+  .cred-table th {
+    text-align: left;
+    padding: 10px 16px;
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+  }
+  .cred-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+  }
+  .cred-table tr:last-child td { border-bottom: none; }
+  .cred-table tr:hover td { background: var(--surface2); }
+
+  /* ── File tree ── */
+  .file-tree {
+    background: #0a0b0e;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 2;
+  }
+  .ft-dir  { color: var(--accent2); }
+  .ft-file { color: var(--text); }
+  .ft-desc { color: var(--muted); font-size: 0.76rem; }
+  .ft-indent { padding-left: 20px; border-left: 1px solid var(--border); margin-left: 8px; }
+
+  /* ── Callout ── */
+  .callout {
+    display: flex;
+    gap: 12px;
+    background: rgba(59,130,246,.08);
+    border: 1px solid rgba(59,130,246,.2);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 0.87rem;
+    margin-bottom: 16px;
+  }
+  .callout.warn { background: rgba(245,158,11,.08); border-color: rgba(245,158,11,.2); }
+  .callout.warn .ci { color: var(--accent); }
+  .ci { font-size: 1.1rem; flex-shrink: 0; color: var(--accent2); }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; }
+    .hero, .content { padding-left: 24px; padding-right: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ══ SIDEBAR ═══════════════════════════════════════════════════════════ -->
+  <aside class="sidebar">
+    <a class="sidebar-brand" href="#">
+      <div class="brand-icon">⚖️</div>
+      <div>
+        <div class="brand-text">Resolve<em style="color:var(--accent);font-style:normal">It</em></div>
+        <div class="brand-sub">API Documentation</div>
+      </div>
+    </a>
+
+    <div class="nav-section">
+      <div class="nav-label">Getting Started</div>
+      <a class="nav-item active" href="#overview">
+        <span class="nav-dot" style="background:var(--accent)"></span> Overview
+      </a>
+      <a class="nav-item" href="#auth-section">
+        <span class="nav-dot" style="background:var(--purple)"></span> Authentication
+      </a>
+      <a class="nav-item" href="#structure">
+        <span class="nav-dot" style="background:var(--cyan)"></span> Project Structure
+      </a>
+      <a class="nav-item" href="#credentials">
+        <span class="nav-dot" style="background:var(--green)"></span> Default Credentials
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">API Reference</div>
+      <a class="nav-item" href="#ep-auth">
+        <span class="nav-dot" style="background:var(--purple)"></span> Auth
+      </a>
+      <a class="nav-item" href="#ep-grievances">
+        <span class="nav-dot" style="background:var(--post)"></span> Grievances
+      </a>
+      <a class="nav-item" href="#ep-users">
+        <span class="nav-dot" style="background:var(--get)"></span> Users
+      </a>
+      <a class="nav-item" href="#ep-feedback">
+        <span class="nav-dot" style="background:var(--cyan)"></span> Feedback
+      </a>
+      <a class="nav-item" href="#ep-departments">
+        <span class="nav-dot" style="background:var(--accent)"></span> Departments
+      </a>
+      <a class="nav-item" href="#ep-stats">
+        <span class="nav-dot" style="background:var(--green)"></span> Stats
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Data Models</div>
+      <a class="nav-item" href="#model-grievance">
+        <span class="nav-dot" style="background:var(--border2)"></span> Grievance
+      </a>
+      <a class="nav-item" href="#model-user">
+        <span class="nav-dot" style="background:var(--border2)"></span> User
+      </a>
+      <a class="nav-item" href="#model-feedback">
+        <span class="nav-dot" style="background:var(--border2)"></span> Feedback
+      </a>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══════════════════════════════════════════════════════════════ -->
+  <main class="main">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-badge">⚖️ v2.0 · REST API</div>
+      <h1>ResolveIt<br/><em>API Docs</em></h1>
+      <p class="hero-desc">
+        Complete reference for the ResolveIt Grievance Portal backend —
+        a Node.js / Express REST API with JSON file persistence, role-based
+        access control, and full CRUD for grievances, users, and feedback.
+      </p>
+      <div class="hero-meta">
+        <div class="meta-chip"><span class="dot"></span> Base URL: <strong>http://localhost:3000/api</strong></div>
+        <div class="meta-chip">Node ≥ 16</div>
+        <div class="meta-chip">Express 4</div>
+        <div class="meta-chip">No DB required</div>
+      </div>
+    </div>
+
+    <!-- ── Content ── -->
+    <div class="content">
+
+      <!-- Overview -->
+      <div class="section" id="overview">
+        <span class="section-anchor" id="overview-anchor"></span>
+        <div class="section-title">Overview</div>
+        <div class="section-sub">Base URL, setup, and quick start</div>
+
+        <div class="info-card">
+          <h4>⚡ Quick Start</h4>
+          <div class="code-label">Terminal</div>
+          <div class="code-block">
+<span class="comment"># 1. Enter the backend folder</span>
+<span class="kw">cd</span> resolveit_v2/backend
+
+<span class="comment"># 2. Install dependencies</span>
+npm install
+
+<span class="comment"># 3a. Run in production mode</span>
+npm start
+
+<span class="comment"># 3b. Run with auto-reload (development)</span>
+npm run dev
+
+<span class="comment"># Server starts at http://localhost:3000</span>
+<span class="comment"># Frontend is served at the same origin — no extra web server needed.</span>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h4>🌐 Base URL</h4>
+          <div class="code-block">
+http://localhost:3000/api
+          </div>
+        </div>
+
+        <div class="callout">
+          <span class="ci">ℹ️</span>
+          <div>All responses are <strong>JSON</strong>. Send <code>Content-Type: application/json</code> on POST / PATCH requests. Data is stored in <strong>backend/data/*.json</strong> files, which are auto-created and seeded on first run.</div>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Auth -->
+      <div class="section" id="auth-section">
+        <span class="section-anchor"></span>
+        <div class="section-title">Authentication</div>
+        <div class="section-sub">Token-based via HTTP Authorization header</div>
+
+        <div class="callout warn">
+          <span class="ci">⚠️</span>
+          <div>Tokens are base64-encoded <code>email:role</code> strings for demo simplicity. Replace with JWT before going to production.</div>
+        </div>
+
+        <div class="info-card">
+          <h4>🔑 How It Works</h4>
+          <p style="color:var(--muted);font-size:0.87rem;margin-bottom:14px">1. Call <code>POST /api/auth/login</code> with your email and password.<br/>2. Receive a <code>token</code> string.<br/>3. Send it on every subsequent request:</p>
+          <div class="code-label">Request Header</div>
+          <div class="code-block">Authorization: Bearer <span class="str">&lt;token&gt;</span></div>
+        </div>
+
+        <div class="info-card">
+          <h4>🎭 Roles &amp; Permissions</h4>
+          <table class="param-table" style="margin-top:10px">
+            <thead>
+              <tr><th>Role</th><th>Can Do</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="role-pill r-student">student</span></td>
+                <td style="color:var(--muted);font-size:0.85rem">Submit grievances · View own grievances · Submit feedback · View own profile</td>
+              </tr>
+              <tr>
+                <td><span class="role-pill r-resolver">resolver</span></td>
+                <td style="color:var(--muted);font-size:0.85rem">View all grievances · Update status/remarks · View feedback · View stats</td>
+              </tr>
+              <tr>
+                <td><span class="role-pill r-admin">admin</span></td>
+                <td style="color:var(--muted);font-size:0.85rem">Full access — all of the above + manage users + delete grievances/feedback</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Project Structure -->
+      <div class="section" id="structure">
+        <span class="section-anchor"></span>
+        <div class="section-title">Project Structure</div>
+        <div class="section-sub">How the backend codebase is organised</div>
+
+        <div class="file-tree">
+<span class="ft-dir">backend/</span>
+<div class="ft-indent">
+  <span class="ft-file">server.js</span>             <span class="ft-desc">← Entry point, mounts all routes</span><br/>
+  <span class="ft-file">package.json</span>          <span class="ft-desc">← Dependencies &amp; npm scripts</span><br/>
+  <span class="ft-dir">config/</span>
+  <div class="ft-indent">
+    <span class="ft-file">constants.js</span>         <span class="ft-desc">← PORT, DEPARTMENTS, ROLES, STATUS values</span><br/>
+    <span class="ft-file">db.js</span>                <span class="ft-desc">← JSON read/write helpers + data seeding</span>
+  </div>
+  <span class="ft-dir">routes/</span>
+  <div class="ft-indent">
+    <span class="ft-file">auth.js</span>              <span class="ft-desc">← POST /api/auth/login</span><br/>
+    <span class="ft-file">grievances.js</span>        <span class="ft-desc">← CRUD /api/grievances</span><br/>
+    <span class="ft-file">users.js</span>             <span class="ft-desc">← CRUD /api/users</span><br/>
+    <span class="ft-file">feedback.js</span>          <span class="ft-desc">← /api/feedback</span><br/>
+    <span class="ft-file">departments.js</span>       <span class="ft-desc">← /api/departments</span><br/>
+    <span class="ft-file">stats.js</span>             <span class="ft-desc">← /api/stats</span>
+  </div>
+  <span class="ft-dir">controllers/</span>
+  <div class="ft-indent">
+    <span class="ft-file">authController.js</span><br/>
+    <span class="ft-file">grievanceController.js</span><br/>
+    <span class="ft-file">userController.js</span><br/>
+    <span class="ft-file">feedbackController.js</span><br/>
+    <span class="ft-file">statsController.js</span>
+  </div>
+  <span class="ft-dir">middleware/</span>
+  <div class="ft-indent">
+    <span class="ft-file">auth.js</span>              <span class="ft-desc">← requireAuth(roles) factory</span><br/>
+    <span class="ft-file">validate.js</span>          <span class="ft-desc">← requireFields(), trimBody()</span><br/>
+    <span class="ft-file">errorHandler.js</span>      <span class="ft-desc">← Global Express error handler</span>
+  </div>
+  <span class="ft-dir">data/</span>
+  <div class="ft-indent">
+    <span class="ft-file">users.json</span>           <span class="ft-desc">← Auto-seeded on first run</span><br/>
+    <span class="ft-file">grievances.json</span>      <span class="ft-desc">← Auto-seeded on first run</span><br/>
+    <span class="ft-file">feedback.json</span>        <span class="ft-desc">← Auto-seeded on first run</span>
+  </div>
+</div>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Default Credentials -->
+      <div class="section" id="credentials">
+        <span class="section-anchor"></span>
+        <div class="section-title">Default Credentials</div>
+        <div class="section-sub">Seeded into data/users.json on first run</div>
+
+        <div class="info-card" style="padding:0;overflow:hidden">
+          <table class="cred-table">
+            <thead><tr><th>Role</th><th>Email</th><th>Password</th><th>Department</th></tr></thead>
+            <tbody>
+              <tr><td><span class="role-pill r-admin">admin</span></td><td>admin@college.edu</td><td>admin123</td><td>—</td></tr>
+              <tr><td><span class="role-pill r-resolver">resolver</span></td><td>ramesh@college.edu</td><td>pass123</td><td>Academic</td></tr>
+              <tr><td><span class="role-pill r-resolver">resolver</span></td><td>suresh@college.edu</td><td>pass123</td><td>Hostel</td></tr>
+              <tr><td><span class="role-pill r-resolver">resolver</span></td><td>anitha@college.edu</td><td>pass123</td><td>IT / Tech</td></tr>
+              <tr><td><span class="role-pill r-student">student</span></td><td>priya@student.edu</td><td>pass123</td><td>—</td></tr>
+              <tr><td><span class="role-pill r-student">student</span></td><td>arjun@student.edu</td><td>pass123</td><td>—</td></tr>
+              <tr><td><span class="role-pill r-student">student</span></td><td>meena@student.edu</td><td>pass123</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- ── API ENDPOINTS ── -->
+      <div class="section" id="ep-auth">
+        <span class="section-anchor"></span>
+        <div class="section-title">API Reference</div>
+        <div class="section-sub">All available endpoints with parameters and example responses</div>
+
+        <!-- AUTH -->
+        <div class="endpoint-group">
+          <div class="group-title"><span class="group-icon">🔐</span> Auth</div>
+
+          <div class="endpoint" onclick="toggle(this)">
+            <div class="endpoint-header">
+              <span class="method-badge m-post">POST</span>
+              <span class="endpoint-path">/api/auth/login</span>
+              <span class="endpoint-summary">Login &amp; receive token</span>
+              <span class="role-pill r-any" style="margin-left:auto">public</span>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="endpoint-body">
+              <div class="body-section">
+                <div class="body-label">Request Body</div>
+                <table class="param-table">
+                  <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                  <tbody>
+                    <tr><td class="pname">email</td><td class="ptype">string</td><td class="preq">required</td><td>Registered email address</td></tr>
+                    <tr><td class="pname">password</td><td class="ptype">string</td><td class="preq">required</td><td>Account password</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="body-section">
+                <div class="body-label">Example Request</div>
+                <div class="code-block">
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  <span class="key">"email"</span>:    <span class="str">"priya@student.edu"</span>,
+  <span class="key">"password"</span>: <span class="str">"pass123"</span>
+}
+                </div>
+              </div>
+              <div class="body-section">
+                <div class="body-label">200 Response</div>
+                <div class="code-block">
+{
+  <span class="key">"user"</span>: {
+    <span class="key">"id"</span>:       <span class="str">"U04"</span>,
+    <span class="key">"name"</span>:     <span class="str">"Priya S."</span>,
+    <span class="key">"email"</span>:    <span class="str">"priya@student.edu"</span>,
+    <span class="key">"role"</span>:     <span class="str">"student"</span>,
+    <span class="key">"dept"</span>:     <span class="str">""</span>,
+    <span class="key">"deptName"</span>: <span class="str">""</span>
+  },
+  <span class="key">"token"</span>: <span class="str">"cHJpeWFAc3R1ZGVudC5lZHU6c3R1ZGVudA=="</span>
+}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GRIEVANCES -->
+        <div class="endpoint-group" id="ep-grievances">
+          <div class="group-title"><span class="group-icon">📋</span> Grievances</div>
+
+          <div class="endpoint" onclick="toggle(this)">
+            <div class="endpoint-header">
+              <span class="method-badge m-get">GET</span>
+              <span class="endpoint-path">/api/grievances</span>
+              <span class="endpoint-summary">List grievances (role-filtered)</span>
+              <div class="endpoint-roles">
+                <span class="role-pill r-any">any auth</span>
+              </div>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="endpoint-body">
+              <div class="body-section">
+                <div class="body-label">Query Parameters</div>
+                <table class="param-table">
+                  <thead><tr><th>Param</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                  <tbody>
+                    <tr><td class="pname">dept</td><td class="ptype">string</td><td class="popt">optional</td><td>Filter by department ID (e.g. TECH)</td></tr>
+                    <tr><td class="pname">status</td><td class="ptype">string</td><td class="popt">optional</td><td>Pending · In Progress · Resolved · Forwarded</td></tr>
+                    <tr><td class="pname">priority</td><td class="ptype">string</td><td class="popt">optional</td><td>Normal · High · Urgent</td></tr>
+                    <tr><td class="pname">studentEmail</td><td class="ptype">string</td><td class="popt">optional</td><td>Filter by submitting student email</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="body-section">
+                <div class="body-label">Note</div>
+                <div class="callout" style="margin:0">
+                  <span class="ci">ℹ️</span>
+                  <div>Students automatically see only their own grievances regardless of query params.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="endpoint" onclick="toggle(this)">
+            <div class="endpoint-header">
+              <span class="method-badge m-get">GET</span>
+              <span class="endpoint-path">/api/grievances/<span class="param">:id</span></span>
+              <span class="endpoint-summary">Get a single grievance</span>
+              <span class="role-pill r-any" style="margin-left:auto">any auth</span>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="endpoint-body">
+              <div class="body-section">
+                <div class="body-label">URL Parameter</div>
+                <table class="param-table">
+                  <thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead>
+                  <tbody>
+                    <tr><td class="pname">id</td><td class="ptype">string</td><td>Grievance ID, e.g. GRV1001</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="body-section">
+                <div class="body-label">200 Response</div>
+                <div class="code-block">
+{
+  <span class="key">"id"</span>:           <span class="str">"GRV1001"</span>,
+  <span class="key">"subject"</span>:      <span class="str">"WiFi not working in Lab 3"</span>,
+  <span class="key">"dept"</span>:         <span class="str">"TECH"</span>,
+  <span class="key">"deptName"</span>:     <span class="str">"IT / Technical Department"</span>,
+  <span class="key">"desc"</span>:         <span class="str">"Internet has been down for 3 days..."</span>,
+  <span class="key">"status"</span>:       <span class="str">"Resolved"</span>,
+  <span class="key">"priority"</span>:     <span class="str">"High"</span>,
+  <span class="key">"date"</span>:         <span class="str">"2025-01-10"</span>,
+  <span class="key">"student"</span>:      <span class="str">"Priya S."</span>,
+  <span class="key">"studentEmail"</span>: <span class="str">"priya@student.edu"</span>,
+  <span class="key">"remarks"</span>:      <span class="str">"Fixed router configuration."</span>
+}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="endpoint" onclick="toggle(this)">
+            <div class="endpoint-header">
+              <span class="method-badge m-post">POST</span>
+              <span class="endpoint-path">/api/grievances</span>
+              <span class="endpoint-summary">Submit a new grievance</span>
+              <div class="endpoint-roles">
+                <span class="role-pill r-student">student</span>
+                <span class="role-pill r-admin">admin</span>
+              </div>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="endpoint-body">
+              <div class="body-section">
+                <div class="body-label">Request Body</div>
+                <table class="param-table">
+                  <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                  <tbody>
+                    <tr><td class="pname">subject</td><td class="ptype">string</td><td class="preq">required</td><td>Short title of the grievance</td></tr>
+                    <tr><td class="pname">dept</td><td class="ptype">string</td><td class="preq">required</td><td>Department ID (ACAD, TECH, HOST …)</td></tr>
+                    <tr><td class="pname">desc</td><td class="ptype">string</td><td class="preq">required</td><td>Full description</td></tr>
+                    <tr><td class="pname">priority</td><td class="ptype">string</td><td class="popt">optional</td><td>Normal (default) · High · Urgent</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="body-section">
+                <div class="body-label">Example</div>
+                <div class="code-block">
+POST /api/grievances
+Authorization: Bearer <span class="str">&lt;student-token&gt;</span>
+
+{
+  <span class="key">"subject"</span>:  <span class="str">"Projector broken in Room 201"</span>,
+  <span class="key">"dept"</span>:     <span class="str">"TECH"</span>,
+  <span class="key">"desc"</span>:     <span class="str">"The projector has not worked since Monday."</span>,
+  <span class="key">"priority"</span>: <span class="str">"High"</span>
+}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="endpoint" onclick="toggle(this)">
+            <div class="endpoint-header">
+              <span class="method-badge m-patch">PATCH</span>
+              <span class="endpoint-path">/api/grievances/<span class="param">:id</span></span>
+              <span class="endpoint-summary">Update status, priority, or remarks</span>
+              <div class="endpoint-roles">
+                <span class="role-pill r-resolver">resolver</span>
+                <span class="role-pill r-admin">admin</span>
+              </div>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="endpoint-body">
+              <div class="body-section">
+                <div class="body-label">Request Body (all optional)</div>
+                <table class="param-table">
+                  <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                  <tbody>
+                    <tr><td class="pname">status</td><td class="ptype">string</td><td>Pending · In Progress · Resolved · Forwarded · Forwarded to Admin</td></tr>
+                    <tr><td class="pname">priority</td><td class="ptype">string</td><td>Normal · High · Urgent</td></tr>
+                    <tr><td class="pname">remarks</td><td class="ptype">string</td><td>Resolver notes</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="endpoint" onclick="toggle(this)">
+            <div class="endpoint-header">
+              <span class="method-badge m-delete">DELETE</span>
+              <span class="endpoint-path">/api/grievances/<span class="param">:id</span></span>
+              <span class="endpoint-summary">Permanently delete a grievance</span>
+              <span class="role-pill r-admin" style="margin-left:auto">admin</span>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="endpoint-body">
+              <div class="body-section">
+                <div class="body-label">200 Response</div>
+                <div class="code-block">{ <span class="key">"message"</span>: <span class="str">"Grievance GRV1001 deleted."</span> }</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- USERS -->
+        <div class="endpoint-group" id="ep-users">
+          <div class="group-title"><span class="group-icon">👤</span> Users</div>
+
+          <div class="endpoint" onclick="toggle(this)">
+            <div class="endpoint-header">
+              <span class="method-badge m-get">GET</span>
+              <span class="endpoint-path">/api/users/me</span>
+              <span class="endpoint-summary">Get own profile</span>
+              <span class="role-pill r-any" style="margin-left:auto">any auth</span>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="endpoint-body">
+              <div class="body-section">
+                <div class="body-label">200 Response</div>
+                <div class="code-block">{ <span class="key">"id"</span>: <span class="str">"U04"</span>, <span class="key">"name"</span>: <span class="str">"Priya S."</span>, <span class="key">"email"</span>: <span class="str">"priya@student.edu"</span>, <span class="key">"role"</span>: <span class="str">"student"</span> }</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="endpoint" onclick="toggle(this)">
+            <div class="endpoint-header">
+              <span class="method-badge m-get">GET</span>
+              <span class="endpoint-path">/api/users</span>
+              <span class="endpoint-summary">List all users</span>
+              <span class="role-pill r-admin" style="margin-left:auto">admin</span>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="endpoint-body">
+              <div class="body-section">
+                <div class="body-label">Query Parameters</div>
+                <table class="param-table">
+                  <thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead>
+                  <tbody>
+                    <tr><td class="pname">role</td><td class="ptype">string</td><td>Filter by role: student · resolver · admin</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="endpoint" onclick="toggle(this)">
+            <div class="endpoint-header">
+              <span class="method-badge m-post">POST</span>
+              <span class="endpoint-path">/api/users</span>
+              <span class="endpoint-summary">Create a new user</span>
+              <span class="role-pill r-admin" style="margin-left:auto">admin</span>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="endpoint-body">
+              <div class="body-section">
+                <div class="body-label">Request Body</div>
+                <table class="param-table">
+                  <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                  <tbody>
+                    <tr><td class="pname">name</td><td class="ptype">string</td><td class="preq">required</td><td>Full name</td></tr>
+                    <tr><td class="pname">email</td><td class="ptype">string</td><td class="preq">required</td><td>Must be unique</td></tr>
+                    <tr><td class="pname">password</td><td class="ptype">string</td><td class="preq">required</td><td>Plain text (hash in production!)</td></tr>
+                    <tr><td class="pname">role</td><td class="ptype">string</td><td class="preq">required</td><td>student · resolver · admin</td></tr>
+                    <tr><td class="pname">dept</td><td class="ptype">string</td><td class="popt">optional</td><td>Department ID — required for resolvers</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="endpoint" onclick="toggle(this)">
+            <div class="endpoint-header">
+              <span class="method-badge m-patch">PATCH</span>
+              <span class="endpoint-path">/api/users/<span class="param">:id</span></span>
+              <span class="endpoint-summary">Update name, dept, or password</span>
+              <span class="role-pill r-admin" style="margin-left:auto">admin</span>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="endpoint-body">
+              <div class="body-section">
+                <div class="body-label">Updatable Fields</div>
+                <table class="param-table">
+                  <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                  <tbody>
+                    <tr><td class="pname">name</td><td class="ptype">string</td><td>Display name</td></tr>
+                    <tr><td class="pname">dept</td><td class="ptype">string</td><td>Department ID</td></tr>
+                    <tr><td class="pname">password</td><td class="ptype">string</td><td>New password</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="endpoint" onclick="toggle(this)">
+            <div class="endpoint-header">
+              <span class="method-badge m-delete">DELETE</span>
+              <span class="endpoint-path">/api/users/<span class="param">:id</span></span>
+              <span class="endpoint-summary">Delete a user</span>
+              <span class="role-pill r-admin" style="margin-left:auto">admin</span>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="endpoint-body">
+              <div class="body-section">
+                <div class="body-label">200 Response</div>
+                <div class="code-block">{ <span class="key">"message"</span>: <span class="str">"User U04 deleted."</span> }</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FEEDBACK -->
+        <div class="endpoint-group" id="ep-feedback">
+          <div class="group-title"><span class="group-icon">⭐</span> Feedback</div>
+
+          <div class="endpoint" onclick="toggle(this)">
+            <div class="endpoint-header">
+              <span class="method-badge m-get">GET</span>
+              <span class="endpoint-path">/api/feedback</span>
+              <span class="endpoint-summary">List all feedback</span>
+              <div class="endpoint-roles">
+                <span class="role-pill r-admin">admin</span>
+                <span class="role-pill r-resolver">resolver</span>
+              </div>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="endpoint-body">
+              <div class="body-section">
+                <div class="body-label">200 Response (array)</div>
+                <div class="code-block">
+[{
+  <span class="key">"id"</span>:          <span class="str">"uuid-..."</span>,
+  <span class="key">"grievanceId"</span>: <span class="str">"GRV1001"</span>,
+  <span class="key">"rating"</span>:      <span class="num">5</span>,
+  <span class="key">"message"</span>:     <span class="str">"Issue was resolved quickly!"</span>,
+  <span class="key">"submittedBy"</span>: <span class="str">"priya@student.edu"</span>,
+  <span class="key">"date"</span>:         <span class="str">"2025-01-15"</span>
+}]
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="endpoint" onclick="toggle(this)">
+            <div class="endpoint-header">
+              <span class="method-badge m-post">POST</span>
+              <span class="endpoint-path">/api/feedback</span>
+              <span class="endpoint-summary">Submit feedback for a resolved grievance</span>
+              <span class="role-pill r-student" style="margin-left:auto">student</span>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="endpoint-body">
+              <div class="body-section">
+                <div class="body-label">Request Body</div>
+                <table class="param-table">
+                  <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                  <tbody>
+                    <tr><td class="pname">grievanceId</td><td class="ptype">string</td><td class="preq">required</td><td>Must be one of your grievances</td></tr>
+                    <tr><td class="pname">rating</td><td class="ptype">integer</td><td class="preq">required</td><td>1 – 5</td></tr>
+                    <tr><td class="pname">message</td><td class="ptype">string</td><td class="popt">optional</td><td>Optional comment</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="endpoint" onclick="toggle(this)">
+            <div class="endpoint-header">
+              <span class="method-badge m-delete">DELETE</span>
+              <span class="endpoint-path">/api/feedback/<span class="param">:id</span></span>
+              <span class="endpoint-summary">Delete a feedback entry</span>
+              <span class="role-pill r-admin" style="margin-left:auto">admin</span>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="endpoint-body">
+              <div class="body-section">
+                <div class="body-label">200 Response</div>
+                <div class="code-block">{ <span class="key">"message"</span>: <span class="str">"Feedback deleted."</span> }</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DEPARTMENTS -->
+        <div class="endpoint-group" id="ep-departments">
+          <div class="group-title"><span class="group-icon">🏛️</span> Departments</div>
+
+          <div class="endpoint" onclick="toggle(this)">
+            <div class="endpoint-header">
+              <span class="method-badge m-get">GET</span>
+              <span class="endpoint-path">/api/departments</span>
+              <span class="endpoint-summary">List all departments</span>
+              <span class="role-pill r-any" style="margin-left:auto">public</span>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="endpoint-body">
+              <div class="body-section">
+                <div class="body-label">200 Response</div>
+                <div class="code-block">
+[
+  { <span class="key">"id"</span>: <span class="str">"ACAD"</span>, <span class="key">"name"</span>: <span class="str">"Academic Department"</span>,       <span class="key">"icon"</span>: <span class="str">"📚"</span>, <span class="key">"desc"</span>: <span class="str">"Exams, results..."</span> },
+  { <span class="key">"id"</span>: <span class="str">"TECH"</span>, <span class="key">"name"</span>: <span class="str">"IT / Technical Department"</span>, <span class="key">"icon"</span>: <span class="str">"💻"</span>, <span class="key">"desc"</span>: <span class="str">"Internet, computers..."</span> },
+  <span class="comment">...6 more</span>
+]
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="endpoint" onclick="toggle(this)">
+            <div class="endpoint-header">
+              <span class="method-badge m-get">GET</span>
+              <span class="endpoint-path">/api/departments/<span class="param">:id</span></span>
+              <span class="endpoint-summary">Get a single department by ID</span>
+              <span class="role-pill r-any" style="margin-left:auto">public</span>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="endpoint-body">
+              <div class="body-section">
+                <div class="body-label">Example</div>
+                <div class="code-block">GET /api/departments/TECH</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="endpoint-group" id="ep-stats">
+          <div class="group-title"><span class="group-icon">📊</span> Stats</div>
+
+          <div class="endpoint" onclick="toggle(this)">
+            <div class="endpoint-header">
+              <span class="method-badge m-get">GET</span>
+              <span class="endpoint-path">/api/stats</span>
+              <span class="endpoint-summary">Summary counts for dashboards</span>
+              <span class="role-pill r-any" style="margin-left:auto">any auth</span>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="endpoint-body">
+              <div class="body-section">
+                <div class="body-label">200 Response</div>
+                <div class="code-block">
+{
+  <span class="key">"grievances"</span>: { <span class="key">"total"</span>: <span class="num">6</span>, <span class="key">"pending"</span>: <span class="num">2</span>, <span class="key">"inProgress"</span>: <span class="num">2</span>, <span class="key">"resolved"</span>: <span class="num">1</span>, <span class="key">"forwarded"</span>: <span class="num">1</span> },
+  <span class="key">"users"</span>:      { <span class="key">"total"</span>: <span class="num">7</span>, <span class="key">"students"</span>: <span class="num">3</span>, <span class="key">"resolvers"</span>: <span class="num">3</span>, <span class="key">"admins"</span>: <span class="num">1</span> },
+  <span class="key">"feedback"</span>:   { <span class="key">"total"</span>: <span class="num">0</span>, <span class="key">"avgRating"</span>: <span class="str">"0.0"</span> },
+  <span class="key">"byDept"</span>: [
+    { <span class="key">"id"</span>: <span class="str">"ACAD"</span>, <span class="key">"name"</span>: <span class="str">"Academic Department"</span>, <span class="key">"total"</span>: <span class="num">1</span>, <span class="key">"pending"</span>: <span class="num">1</span>, <span class="key">"resolved"</span>: <span class="num">0</span> },
+    <span class="comment">...7 more departments</span>
+  ]
+}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="endpoint" onclick="toggle(this)">
+            <div class="endpoint-header">
+              <span class="method-badge m-get">GET</span>
+              <span class="endpoint-path">/api/health</span>
+              <span class="endpoint-summary">Server health check</span>
+              <span class="role-pill r-any" style="margin-left:auto">public</span>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="endpoint-body">
+              <div class="body-section">
+                <div class="body-label">200 Response</div>
+                <div class="code-block">{ <span class="key">"status"</span>: <span class="str">"ok"</span>, <span class="key">"timestamp"</span>: <span class="str">"2025-03-10T12:00:00.000Z"</span> }</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Data Models -->
+      <div class="section" id="model-grievance">
+        <span class="section-anchor"></span>
+        <div class="section-title">Data Models</div>
+        <div class="section-sub">Shape of objects stored and returned by the API</div>
+
+        <div class="endpoint-group">
+          <div class="group-title"><span class="group-icon">📋</span> Grievance</div>
+          <div class="code-block">
+{
+  <span class="key">"id"</span>:           <span class="str">"GRV1234"</span>,          <span class="comment">// auto-generated</span>
+  <span class="key">"subject"</span>:      <span class="str">"string"</span>,
+  <span class="key">"dept"</span>:         <span class="str">"TECH"</span>,             <span class="comment">// department ID</span>
+  <span class="key">"deptName"</span>:     <span class="str">"IT / Technical Department"</span>,
+  <span class="key">"category"</span>:     <span class="str">"IT / Technical Department"</span>,
+  <span class="key">"desc"</span>:         <span class="str">"string"</span>,
+  <span class="key">"status"</span>:       <span class="str">"Pending"</span>,          <span class="comment">// Pending | In Progress | Resolved | Forwarded</span>
+  <span class="key">"priority"</span>:     <span class="str">"Normal"</span>,           <span class="comment">// Normal | High | Urgent</span>
+  <span class="key">"date"</span>:         <span class="str">"YYYY-MM-DD"</span>,
+  <span class="key">"student"</span>:      <span class="str">"Priya S."</span>,
+  <span class="key">"studentEmail"</span>: <span class="str">"priya@student.edu"</span>,
+  <span class="key">"remarks"</span>:      <span class="str">""</span>                 <span class="comment">// resolver notes</span>
+}
+          </div>
+        </div>
+
+        <div class="endpoint-group" id="model-user">
+          <div class="group-title"><span class="group-icon">👤</span> User</div>
+          <div class="code-block">
+{
+  <span class="key">"id"</span>:       <span class="str">"U04"</span>,
+  <span class="key">"name"</span>:     <span class="str">"Priya S."</span>,
+  <span class="key">"email"</span>:    <span class="str">"priya@student.edu"</span>,
+  <span class="key">"role"</span>:     <span class="str">"student"</span>,          <span class="comment">// student | resolver | admin</span>
+  <span class="key">"dept"</span>:     <span class="str">""</span>,                 <span class="comment">// department ID (resolvers)</span>
+  <span class="key">"deptName"</span>: <span class="str">""</span>
+  <span class="comment">// "password" field is NEVER returned by the API</span>
+}
+          </div>
+        </div>
+
+        <div class="endpoint-group" id="model-feedback">
+          <div class="group-title"><span class="group-icon">⭐</span> Feedback</div>
+          <div class="code-block">
+{
+  <span class="key">"id"</span>:          <span class="str">"uuid-v4-string"</span>,
+  <span class="key">"grievanceId"</span>: <span class="str">"GRV1001"</span>,
+  <span class="key">"rating"</span>:      <span class="num">5</span>,                  <span class="comment">// 1 – 5</span>
+  <span class="key">"message"</span>:     <span class="str">"string"</span>,
+  <span class="key">"submittedBy"</span>: <span class="str">"priya@student.edu"</span>,
+  <span class="key">"date"</span>:        <span class="str">"YYYY-MM-DD"</span>
+}
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+</div>
+
+<script>
+  function toggle(el) {
+    el.classList.toggle('open');
+  }
+
+  // Highlight active nav item on scroll
+  const sections = document.querySelectorAll('[id]');
+  const navItems = document.querySelectorAll('.nav-item');
+  const map = {
+    'overview': 'overview', 'auth-section': 'auth-section',
+    'structure': 'structure', 'credentials': 'credentials',
+    'ep-auth': 'ep-auth', 'ep-grievances': 'ep-grievances',
+    'ep-users': 'ep-users', 'ep-feedback': 'ep-feedback',
+    'ep-departments': 'ep-departments', 'ep-stats': 'ep-stats',
+    'model-grievance': 'model-grievance', 'model-user': 'model-user',
+    'model-feedback': 'model-feedback',
+  };
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navItems.forEach(n => {
+          n.classList.toggle('active', n.getAttribute('href') === '#' + e.target.id);
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  document.querySelectorAll('.section[id]').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

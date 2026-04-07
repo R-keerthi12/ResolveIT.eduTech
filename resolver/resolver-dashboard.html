@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resolver Dashboard — ResolveIt</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <nav class="topbar">
+    <a href="../index.html" class="topbar-logo">Resolve<em>It</em></a>
+    <div class="topbar-right">
+      <span class="role-badge badge-resolver">👨‍🏫 Resolver</span>
+      <button class="btn btn-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page-body animate">
+    <p class="page-title">Resolver Dashboard</p>
+    <p class="page-sub">Manage and resolve assigned grievances across departments</p>
+
+    <div class="stats-row" id="stats-row"></div>
+
+    <div class="nav-grid">
+      <a href="view-assigned.html" class="nav-card">
+        <div class="nav-card-icon ic-blue">📋</div>
+        <h3>View Assigned Complaints</h3>
+        <p>Filter by department and take action</p>
+      </a>
+      <a href="update-status.html" class="nav-card">
+        <div class="nav-card-icon ic-amber">🔄</div>
+        <h3>Update Status</h3>
+        <p>Change the status of a grievance by ID</p>
+      </a>
+    </div>
+
+    <!-- Department Overview -->
+    <div class="section-head">
+      <h2>Department Overview</h2>
+      <a href="view-assigned.html" class="btn btn-ghost" style="font-size:0.85rem;padding:7px 14px">View All →</a>
+    </div>
+    <div class="dept-summary-grid" id="dept-grid"></div>
+  </div>
+
+  <script src="../assets/js/data.js"></script>
+  <script>
+    const session = getSession();
+    if (!session || session.role !== 'resolver') window.location.href = 'resolver-login.html';
+
+    let resolverGrievances = [];
+
+    function renderStats() {
+      const g = resolverGrievances;
+      document.getElementById('stats-row').innerHTML = `
+        <div class="stat-box"><div class="stat-num">${g.length}</div><div class="stat-label">Total Assigned</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:var(--amber)">${g.filter(x=>x.status==='Pending').length}</div><div class="stat-label">Pending</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:var(--blue)">${g.filter(x=>x.status==='In Progress').length}</div><div class="stat-label">In Progress</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:var(--green)">${g.filter(x=>x.status==='Resolved').length}</div><div class="stat-label">Resolved</div></div>
+      `;
+    }
+
+    function renderDepts() {
+      const g = resolverGrievances;
+      document.getElementById('dept-grid').innerHTML = getDepartments().map(d => {
+        const count   = g.filter(x => x.dept === d.id).length;
+        const pending = g.filter(x => x.dept === d.id && x.status === 'Pending').length;
+        return `<div class="dept-summary-card" onclick="location.href='view-assigned.html'">
+          <span class="dept-summary-icon">${d.icon}</span>
+          <div>
+            <div class="dept-summary-name">${d.name}</div>
+            <div class="dept-summary-count">${pending} pending</div>
+          </div>
+          <div class="dept-summary-num">${count}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function doLogout() { clearSession(); window.location.href = '../index.html'; }
+    renderStats();
+    renderDepts();
+    async function loadData() {
+      const res = await apiGetGrievances();
+      resolverGrievances = res.ok ? (res.data.data || res.data) : [];
+      if (typeof render === "function") render();
+    }
+    loadData();
+  </script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Sign Up — ResolveIt</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .strength-bar {
+      height: 4px;
+      border-radius: 4px;
+      margin-top: 6px;
+      background: #e5e7eb;
+      transition: all 0.3s;
+    }
+    .strength-bar .fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s, background 0.3s;
+    }
+    .strength-label {
+      font-size: 0.75rem;
+      margin-top: 4px;
+      color: var(--muted);
+    }
+    .field .eye-wrap {
+      position: relative;
+    }
+    .field .eye-wrap input {
+      padding-right: 40px;
+    }
+    .field .eye-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 1rem;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-box animate">
+      <a href="../index.html" class="login-logo">Resolve<em>It</em></a>
+
+      <span class="login-tag" style="background:var(--blue-dim);color:var(--blue)">🎓 Student Portal</span>
+      <h1>Create account</h1>
+
+      <div class="field">
+        <label>Full Name</label>
+        <input type="text" id="name" placeholder="Your full name" autofocus>
+      </div>
+
+      <div class="field">
+        <label>College Email</label>
+        <input type="email" id="email" placeholder="student@college.edu">
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <div class="eye-wrap">
+          <input type="password" id="pass" placeholder="Min. 6 characters" oninput="checkStrength()">
+          <button class="eye-btn" type="button" onclick="togglePass('pass', this)">👁</button>
+        </div>
+        <div class="strength-bar"><div class="fill" id="strength-fill" style="width:0%"></div></div>
+        <div class="strength-label" id="strength-label"></div>
+      </div>
+
+      <div class="field">
+        <label>Confirm Password</label>
+        <div class="eye-wrap">
+          <input type="password" id="pass2" placeholder="Re-enter password">
+          <button class="eye-btn" type="button" onclick="togglePass('pass2', this)">👁</button>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-full" onclick="doSignup()">Create Account →</button>
+
+      <p style="text-align:center;margin-top:18px;font-size:0.85rem;color:var(--muted)">
+        Already have an account?
+        <a href="student-login.html" style="color:var(--blue);font-weight:500">Sign In</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="../assets/js/data.js"></script>
+  <script>
+    function togglePass(id, btn) {
+      const input = document.getElementById(id);
+      const show  = input.type === 'password';
+      input.type  = show ? 'text' : 'password';
+      btn.textContent = show ? '🙈' : '👁';
+    }
+
+    function checkStrength() {
+      const val  = document.getElementById('pass').value;
+      const fill = document.getElementById('strength-fill');
+      const lbl  = document.getElementById('strength-label');
+      let score  = 0;
+      if (val.length >= 6)  score++;
+      if (val.length >= 10) score++;
+      if (/[A-Z]/.test(val)) score++;
+      if (/[0-9]/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
+
+      const levels = [
+        { w: '0%',   c: '',          t: '' },
+        { w: '25%',  c: '#ef4444',   t: 'Weak' },
+        { w: '50%',  c: '#f97316',   t: 'Fair' },
+        { w: '75%',  c: '#eab308',   t: 'Good' },
+        { w: '100%', c: '#22c55e',   t: 'Strong' },
+      ];
+      const lvl = levels[Math.min(score, 4)];
+      fill.style.width      = lvl.w;
+      fill.style.background = lvl.c;
+      lbl.textContent       = lvl.t;
+      lbl.style.color       = lvl.c;
+    }
+
+    async function doSignup() {
+      const name  = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const pass  = document.getElementById('pass').value;
+      const pass2 = document.getElementById('pass2').value;
+
+      if (!name)             { toast('Please enter your name', true); return; }
+      if (!email)            { toast('Please enter your email', true); return; }
+      if (!pass)             { toast('Please enter a password', true); return; }
+      if (pass.length < 6)   { toast('Password must be at least 6 characters', true); return; }
+      if (pass !== pass2)    { toast('Passwords do not match', true); return; }
+
+      const btn = document.querySelector('.btn-primary');
+      btn.disabled     = true;
+      btn.textContent  = 'Creating account…';
+
+      const res = await apiFetch('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ name, email, password: pass }),
+      });
+
+      if (res.ok) {
+        storeToken(res.data.token);
+        setSession(res.data.user);
+        toast('Account created! Welcome, ' + name + ' 🎉');
+        setTimeout(() => { window.location.href = 'student-dashboard.html'; }, 800);
+      } else {
+        toast(res.error || 'Registration failed. Please try again.', true);
+        btn.disabled    = false;
+        btn.textContent = 'Create Account →';
+      }
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doSignup(); });
+  </script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assigned Complaints — ResolveIt</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <nav class="topbar">
+    <a href="../index.html" class="topbar-logo">Resolve<em>It</em></a>
+    <div class="topbar-right">
+      <span class="role-badge badge-resolver">👨‍🏫 Resolver</span>
+      <a href="resolver-dashboard.html" class="btn btn-logout">← Dashboard</a>
+    </div>
+  </nav>
+
+  <div class="page-body animate">
+    <div class="section-head">
+      <div>
+        <h2>Assigned Complaints</h2>
+        <p style="color:var(--muted);font-size:0.85rem;margin-top:4px" id="dept-desc">Showing all department complaints</p>
+      </div>
+      <span id="count" style="font-size:0.85rem;color:var(--muted)"></span>
+    </div>
+
+    <!-- Department filter tabs -->
+    <div class="dept-tabs" id="dept-tabs">
+      <button class="dept-tab active" data-dept="" onclick="setDeptTab(this,'')">All Departments</button>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-filters">
+        <select class="filter-select" id="filter-status" onchange="render()">
+          <option value="">All Statuses</option>
+          <option>Pending</option>
+          <option>In Progress</option>
+          <option>Resolved</option>
+          <option>Forwarded</option>
+        </select>
+        <select class="filter-select" id="filter-priority" onchange="render()">
+          <option value="">All Priorities</option>
+          <option>Urgent</option>
+          <option>High</option>
+          <option>Normal</option>
+        </select>
+      </div>
+      <div id="table-body"></div>
+    </div>
+  </div>
+
+  <script src="../assets/js/data.js"></script>
+  <script>
+    const session = getSession();
+    if (!session || session.role !== 'resolver') window.location.href = 'resolver-login.html';
+
+    let activeDept = '';
+
+    // Build dept tabs
+    const tabBar = document.getElementById('dept-tabs');
+    getDepartments().forEach(d => {
+      const btn = document.createElement('button');
+      btn.className = 'dept-tab';
+      btn.dataset.dept = d.id;
+      btn.textContent = d.icon + ' ' + d.name;
+      btn.onclick = function(){ setDeptTab(this, d.id); };
+      tabBar.appendChild(btn);
+    });
+
+    function setDeptTab(btn, dept) {
+      activeDept = dept;
+      document.querySelectorAll('.dept-tab').forEach(b =>
+        b.classList.toggle('active', b.dataset.dept === dept)
+      );
+      if (dept) {
+        const d = getDept(dept);
+        document.getElementById('dept-desc').textContent = d.icon + ' ' + d.name + ' — ' + d.desc;
+      } else {
+        document.getElementById('dept-desc').textContent = 'Showing all department complaints';
+      }
+      render();
+    }
+
+    async function setStatus(id, status) {
+      const res = await apiUpdateGrievance(id, { status });
+      if (res.ok) {
+        toast('✅ Status updated → ' + status + (status === 'Resolved' ? ' — Email sent to student' : ''));
+        await loadGrievances();
+      } else {
+        toast(res.error || 'Update failed', true);
+      }
+    }
+
+    let allGrievances = [];
+
+    function render() {
+      const st  = document.getElementById('filter-status').value;
+      const pri = document.getElementById('filter-priority').value;
+      const list = allGrievances.filter(g =>
+        (!activeDept || g.dept === activeDept) &&
+        (!st  || g.status === st) &&
+        (!pri || g.priority === pri)
+      );
+
+      document.getElementById('count').textContent = list.length + ' record' + (list.length !== 1 ? 's' : '');
+
+      const el = document.getElementById('table-body');
+      if (!list.length) {
+        el.innerHTML = `<div class="empty-state"><div class="icon">🎉</div><p>No complaints match your filters.</p></div>`;
+        return;
+      }
+      el.innerHTML = `<table>
+        <thead><tr>
+          <th>ID</th><th>Subject</th><th>Department</th><th>Student</th><th>Priority</th><th>Date</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody>
+          ${list.map(g => `<tr>
+            <td><strong>${g.id}</strong></td>
+            <td>${g.subject}</td>
+            <td>${deptTag(g.dept)}</td>
+            <td>${g.student}</td>
+            <td><span style="font-size:0.78rem;font-weight:600;color:${g.priority==='Urgent'?'var(--red)':g.priority==='High'?'var(--amber)':'var(--muted)'}">${g.priority||'Normal'}</span></td>
+            <td>${g.date}</td>
+            <td>${statusBadge(g.status)}</td>
+            <td>
+              <button class="btn-sm p" onclick="setStatus('${g.id}','In Progress')">▶ Start</button>
+              <button class="btn-sm s" onclick="setStatus('${g.id}','Resolved')">✓ Resolve</button>
+              <button class="btn-sm w" onclick="setStatus('${g.id}','Forwarded')">⤴ Forward</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+    }
+
+    async function loadGrievances() {
+      document.getElementById('table-body').innerHTML = '<div class="empty-state"><p>Loading…</p></div>';
+      const res = await apiFetch('/grievances?limit=500');
+      allGrievances = res.ok ? (Array.isArray(res.data) ? res.data : (res.data.data || [])) : [];
+      render();
+    }
+    loadGrievances();
+  </script>
+</body>
+</html>

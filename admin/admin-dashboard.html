@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — ResolveIt</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <nav class="topbar">
+    <a href="../index.html" class="topbar-logo">Resolve<em>It</em></a>
+    <div class="topbar-right">
+      <span class="role-badge badge-admin">👨‍💼 Admin</span>
+      <button class="btn btn-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page-body animate">
+    <p class="page-title">Admin Control Panel</p>
+    <p class="page-sub">Monitor the entire grievance system across all departments</p>
+
+    <div class="stats-row" id="stats-row"></div>
+
+    <div class="nav-grid">
+      <a href="all-complaints.html" class="nav-card">
+        <div class="nav-card-icon ic-blue">📋</div>
+        <h3>All Complaints</h3>
+        <p>View, filter and manage by department</p>
+      </a>
+      <a href="manage-users.html" class="nav-card">
+        <div class="nav-card-icon ic-amber">👥</div>
+        <h3>Manage Users</h3>
+        <p>Add resolver and assign departments</p>
+      </a>
+      <a href="#" class="nav-card" onclick="generateReport(event)">
+        <div class="nav-card-icon ic-green">📊</div>
+        <h3>Generate Report</h3>
+        <p>Export a summary by department</p>
+      </a>
+    </div>
+
+    <!-- Department breakdown -->
+    <div class="section-head">
+      <h2>Department Breakdown</h2>
+      <a href="all-complaints.html" class="btn btn-ghost" style="font-size:0.85rem;padding:7px 14px">Manage All →</a>
+    </div>
+    <div class="dept-summary-grid" id="dept-grid"></div>
+  </div>
+
+  <script src="../assets/js/data.js"></script>
+  <script>
+    const session = getSession();
+    if (!session || session.role !== 'admin') window.location.href = 'admin-login.html';
+
+    function renderStats(g, u, f) {
+      const avgRating = f.length ? (f.reduce((a,b) => a + (b.rating||0), 0) / f.length).toFixed(1) : 'N/A';
+      document.getElementById('stats-row').innerHTML = `
+        <div class="stat-box"><div class="stat-num">${g.length}</div><div class="stat-label">Total Grievances</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:var(--amber)">${g.filter(x=>x.status==='Pending').length}</div><div class="stat-label">Pending</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:var(--blue)">${g.filter(x=>x.status==='In Progress').length}</div><div class="stat-label">In Progress</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:var(--green)">${g.filter(x=>x.status==='Resolved').length}</div><div class="stat-label">Resolved</div></div>
+        <div class="stat-box"><div class="stat-num">${u.length}</div><div class="stat-label">Total Users</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:var(--amber)">${avgRating}${f.length?'★':''}</div><div class="stat-label">Avg Rating</div></div>
+      `;
+    }
+
+    function renderDepts(g) {
+      document.getElementById('dept-grid').innerHTML = getDepartments().map(d => {
+        const total   = g.filter(x => x.dept === d.id).length;
+        const pending = g.filter(x => x.dept === d.id && x.status === 'Pending').length;
+        const resolved= g.filter(x => x.dept === d.id && x.status === 'Resolved').length;
+        return `<div class="dept-summary-card" onclick="location.href='all-complaints.html'">
+          <span class="dept-summary-icon">${d.icon}</span>
+          <div>
+            <div class="dept-summary-name">${d.name}</div>
+            <div class="dept-summary-count">⏳ ${pending} pending · ✅ ${resolved} resolved</div>
+          </div>
+          <div class="dept-summary-num">${total}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function generateReport(e) {
+      e.preventDefault();
+      toast('📊 Report generated — check All Complaints for full data export');
+    }
+
+    function doLogout() { apiLogout(); window.location.href = '../index.html'; }
+
+    async function loadDashboard() {
+      const [gRes, uRes, fRes] = await Promise.all([
+        apiGetGrievances({ limit: 500 }),
+        apiFetch('/users'),
+        apiGetFeedback(),
+      ]);
+      const g = gRes.ok ? (gRes.data.data || gRes.data) : [];
+      const u = uRes.ok ? (uRes.data || []) : [];
+      const f = fRes.ok ? (fRes.data || []) : [];
+      renderStats(g, u, f);
+      renderDepts(g);
+    }
+    loadDashboard();
+  </script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit Grievance — ResolveIt</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <nav class="topbar">
+    <a href="../index.html" class="topbar-logo">Resolve<em>It</em></a>
+    <div class="topbar-right">
+      <span class="role-badge badge-student">🎓 Student</span>
+      <a href="student-dashboard.html" class="btn btn-logout">← Dashboard</a>
+    </div>
+  </nav>
+
+  <div class="page-body animate">
+    <div style="max-width:660px">
+      <h1 class="page-title" style="margin-bottom:4px">Submit a Grievance</h1>
+      <p style="color:var(--muted);font-size:0.87rem;margin-bottom:28px">Select the department your issue belongs to, then describe your complaint.</p>
+
+      <!-- Step 1: Department -->
+      <div class="card" style="margin-bottom:20px">
+        <h2 style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;margin-bottom:4px">Step 1 — Select Department</h2>
+        <p style="color:var(--muted);font-size:0.82rem;margin-bottom:18px">Choose the department your issue belongs to</p>
+
+        <div class="dept-grid" id="dept-grid"></div>
+
+        <div class="dept-selected-info" id="dept-info">
+          <span id="dept-info-icon" style="font-size:1.5rem"></span>
+          <div>
+            <strong id="dept-info-name"></strong><br>
+            <span style="font-size:0.76rem;opacity:0.85" id="dept-info-desc"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Details -->
+      <div class="card">
+        <h2 style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;margin-bottom:4px">Step 2 — Grievance Details</h2>
+        <p style="color:var(--muted);font-size:0.82rem;margin-bottom:22px">All fields marked * are required</p>
+
+        <div class="field">
+          <label>Grievance ID (Auto-Generated)</label>
+          <input type="text" id="grv-id" readonly>
+        </div>
+        <div class="field">
+          <label>Department (auto-filled) *</label>
+          <input type="text" id="grv-dept-show" readonly placeholder="Select a department above first">
+        </div>
+        <div class="field">
+          <label>Subject *</label>
+          <input type="text" id="grv-subject" placeholder="Brief title of your issue" maxlength="100" oninput="clearAiHint()">
+          <button type="button" onclick="aiSuggestDept()" id="ai-btn" style="margin-top:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:0.8rem;cursor:pointer;display:flex;align-items:center;gap:6px">✨ AI Suggest Department</button>
+          <div id="ai-hint" style="display:none;margin-top:8px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:8px 12px;font-size:0.82rem;color:#15803d"></div>
+        </div>
+        <div class="field">
+          <label>Priority</label>
+          <select id="grv-priority">
+            <option value="Normal">Normal</option>
+            <option value="High">High</option>
+            <option value="Urgent">Urgent</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Description *</label>
+          <textarea id="grv-desc" rows="6" placeholder="Describe your issue in detail. The more information you provide, the faster we can help."></textarea>
+        </div>
+
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary btn-full" onclick="doSubmit()">Submit Grievance →</button>
+          <a href="student-dashboard.html" class="btn btn-ghost" style="white-space:nowrap">Cancel</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/data.js"></script>
+  <script>
+    const session = getSession();
+    if (!session || session.role !== 'student') window.location.href = 'student-login.html';
+
+    document.getElementById('grv-id').value = generateID();
+
+    let selectedDept = '';
+
+    // Build department picker
+    const grid = document.getElementById('dept-grid');
+    getDepartments().forEach(d => {
+      const card = document.createElement('div');
+      card.className = 'dept-card';
+      card.dataset.id = d.id;
+      card.innerHTML = `
+        <span class="dept-card-icon">${d.icon}</span>
+        <div>
+          <div class="dept-card-name">${d.name}</div>
+          <div class="dept-card-desc">${d.desc}</div>
+        </div>`;
+      card.onclick = () => selectDept(d);
+      grid.appendChild(card);
+    });
+
+    function selectDept(d) {
+      selectedDept = d.id;
+      document.querySelectorAll('.dept-card').forEach(c =>
+        c.classList.toggle('selected', c.dataset.id === d.id)
+      );
+      document.getElementById('grv-dept-show').value = d.name;
+      document.getElementById('dept-info-icon').textContent = d.icon;
+      document.getElementById('dept-info-name').textContent = d.name;
+      document.getElementById('dept-info-desc').textContent  = d.desc;
+      document.getElementById('dept-info').classList.add('show');
+    }
+
+    function clearAiHint() { document.getElementById('ai-hint').style.display='none'; }
+
+    async function aiSuggestDept() {
+      const subject = document.getElementById('grv-subject').value.trim();
+      const desc    = document.getElementById('grv-desc').value.trim();
+      if (!subject) { toast('Enter a subject first', true); return; }
+      const btn = document.getElementById('ai-btn');
+      btn.textContent = '⏳ Thinking…'; btn.disabled = true;
+      const res = await apiFetch('/ai/suggest-dept', { method:'POST', body: JSON.stringify({ subject, description: desc }) });
+      btn.textContent = '✨ AI Suggest Department'; btn.disabled = false;
+      if (res.ok) {
+        const hint = document.getElementById('ai-hint');
+        hint.textContent = '🤖 AI suggests: ' + res.data.deptName + ' — Click the department card below to select it.';
+        hint.style.display = 'block';
+        // Auto-select the suggested dept card
+        const dept = getDepartments().find(d => d.id === res.data.deptId);
+        if (dept) selectDept(dept);
+      } else {
+        toast('AI suggestion unavailable', true);
+      }
+    }
+
+    async function doSubmit() {
+      if (!selectedDept) { toast('Please select a department first', true); return; }
+      const subject  = document.getElementById('grv-subject').value.trim();
+      const desc     = document.getElementById('grv-desc').value.trim();
+      const priority = document.getElementById('grv-priority').value;
+      if (!subject) { toast('Please enter a subject', true); return; }
+      if (!desc)    { toast('Please provide a description', true); return; }
+
+      const btn = document.querySelector('.btn-primary');
+      btn.disabled = true; btn.textContent = 'Submitting…';
+
+      const res = await apiSubmitGrievance({ subject, dept: selectedDept, desc, priority });
+      if (res.ok) {
+        toast('✅ Grievance submitted to ' + getDept(selectedDept).name + '!');
+        setTimeout(() => { window.location.href = 'track-status.html'; }, 900);
+      } else {
+        toast(res.error || 'Submission failed. Please try again.', true);
+        btn.disabled = false; btn.textContent = 'Submit Grievance →';
+      }
+    }
+  </script>
+</body>
+</html>
